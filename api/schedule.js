@@ -21,6 +21,20 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Carousel post requires imageUrls' });
   }
 
+  // Auto-convert Dropbox share link to direct download link
+  const toDirectUrl = url => {
+    if (!url) return url;
+    // Dropbox: dl=0 or dl=1 → force dl=1
+    if (url.includes('dropbox.com')) {
+      return url.replace(/[?&]dl=\d/, m => m.replace(/\d$/, '1'))
+                .replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+    }
+    return url;
+  };
+
+  // Convert videoUrl if it's a Dropbox link
+  if (videoUrl) videoUrl = toDirectUrl(videoUrl);
+
   const BUFFER_API_KEY = process.env.BUFFER_API_KEY;
   const CHANNEL_IDS = {
     instagram:         process.env.BUFFER_INSTAGRAM_ID,
